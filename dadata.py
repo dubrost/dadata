@@ -4,8 +4,10 @@ import requests
 
 class DaData:
 
-    def __init__(self, token):
+    def __init__(self, token, secret=None):
         self.token = 'Token ' + str(token)
+        if secret:
+            self.secret = str(secret)
 
     def suggest(self, query, code, count=10):
         headers = {
@@ -85,5 +87,18 @@ class DaData:
             'https://suggestions.dadata.ru/suggestions/api/4_1/rs/findAffiliated/party',
             headers=headers,
             data=json.dumps(data)
+        )
+        return res.json()
+
+    def clean(self, query, code):
+        headers = {
+            "Authorization": self.token,
+            "Content-Type": "application/json",
+            "X-Secret": self.secret
+        }
+        res = requests.post(
+            'https://cleaner.dadata.ru/api/v1/clean/' + str(code),
+            data=json.dumps([query]),
+            headers=headers
         )
         return res.json()
