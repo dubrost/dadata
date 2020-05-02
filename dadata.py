@@ -2,50 +2,62 @@ import json
 import requests
 
 
-class DaData:
+class New:
 
     def __init__(self, token, secret=None):
         self.token = 'Token ' + str(token)
         if secret:
             self.secret = str(secret)
+        self.sp = 'https://suggestions.dadata.ru/suggestions/api/4_1/rs/'
+        self.cp = 'https://cleaner.dadata.ru/api/v1/clean/'
 
-    def ask(self, uri, data):
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': self.token
-        }
-        return requests.post(uri, data=json.dumps(data), headers=headers)
+    def sask(self, fnc):
+        fnc['headers']['Content-Type'] = 'application/json'
+        fnc['headers']['Accept'] = 'application/json'
+        fnc['headers']['Authorization'] = self.token
+        return requests.post(fnc['url'], data=json.dumps(fnc['data']), headers=fnc['headers'])
 
-    def suggest(self, query, code, count=10):
-        data = {
-            'query': query,
-            'count': count
+    def suggest(self, query, code, props=None, filts=None):
+        body = {
+            'url': self.sp + 'suggest/' + str(code),
+            'data': {'query': query}
         }
-        return self.ask('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/' + str(code), data).json()
+        if isinstance(props, dict):
+            for p in props:
+                body['data'][p] = props[p]
+        if isinstance(filts, dict):
+            body['data']['filters'] = [filts]
+        return self.sask(body).json()
 
-    def findById(self, query, code):
-        data = {
-            "query": query
+    def findById(self, query, code, props=None):
+        body = {
+            'url': self.sp + 'findById/' + str(code),
+            'data': {'query': query}
         }
-        return self.ask('https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/' + str(code), data).json()
+        if isinstance(props, dict):
+            for p in props:
+                body['data'][p] = props[p]
+        return self.sask(body).json()
 
-    def geolocate(self, lat, lon, count=10, rad=100, lang='ru'):
-        data = {
-            'lon': str(lon),
-            'lat': str(lat),
-            'count': count,
-            'radius_meters': str(rad),
-            'language': str(lang)
+    def geolocate(self, lat, lon, props=None):
+        body = {
+            'url': self.sp + 'geolocate/address',
+            'data': {'lon': str(lon), 'lat': str(lat)}
         }
-        return self.ask('https://suggestions.dadata.ru/suggestions/api/4_1/rs/geolocate/address', data).json()
+        if isinstance(props, dict):
+            for p in props:
+                body['data'][p] = props[p]
+        return self.sask(body).json()
 
-    def findAffiliated(self, query, count=10):
-        data = {
-            'query': str(query),
-            'count': str(count)
+    def findAffiliated(self, query, props=None):
+        body = {
+            'url': self.sp + 'findAffiliated/party',
+            'data': {'query': query}
         }
-        return self.ask('https://suggestions.dadata.ru/suggestions/api/4_1/rs/findAffiliated/party', data).json()
+        if isinstance(props, dict):
+            for p in props:
+                body['data'][p] = props[p]
+        return self.sask(body).json()
 
     def iplocate(self, query):
         headers = {
@@ -53,20 +65,22 @@ class DaData:
             "Accept": "application/json"
         }
         res = requests.get(
-            'https://suggestions.dadata.ru/suggestions/api/4_1/rs/iplocate/address?ip=' + str(query),
+            self.sp + 'iplocate/address?ip=' + str(query),
             headers=headers
         )
         return res.json()
 
     def clean(self, query, code):
-        headers = {
-            "Authorization": self.token,
-            "Content-Type": "application/json",
-            "X-Secret": self.secret
+        body = {
+            'headers': {'X-Secret': self.secret}
         }
-        res = requests.post(
-            'https://cleaner.dadata.ru/api/v1/clean/' + str(code),
-            data=json.dumps([query]),
-            headers=headers
-        )
-        return res.json()
+        if isinstance(query, list) and isinstance(code, list):
+            body['data'] = {
+                'structure': code,
+                'data': [query]
+            }
+            body['url'] = self.cp
+        else:
+            body['url'] = self.cp + str(code)
+            body['data'] = [query]
+        return self.sask(body).json()
