@@ -65,7 +65,6 @@ class New:
 
     def iplocate(self, query):
         headers = {
-            'headers': {},
             "Authorization": self.token,
             "Accept": "application/json"
         }
