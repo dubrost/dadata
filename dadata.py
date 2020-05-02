@@ -19,6 +19,7 @@ class New:
 
     def suggest(self, query, code, props=None, filts=None):
         body = {
+            'headers': {},
             'url': self.sp + 'suggest/' + str(code),
             'data': {'query': query}
         }
@@ -31,6 +32,7 @@ class New:
 
     def findById(self, query, code, props=None):
         body = {
+            'headers': {},
             'url': self.sp + 'findById/' + str(code),
             'data': {'query': query}
         }
@@ -41,6 +43,7 @@ class New:
 
     def geolocate(self, lat, lon, props=None):
         body = {
+            'headers': {},
             'url': self.sp + 'geolocate/address',
             'data': {'lon': str(lon), 'lat': str(lat)}
         }
@@ -51,6 +54,7 @@ class New:
 
     def findAffiliated(self, query, props=None):
         body = {
+            'headers': {},
             'url': self.sp + 'findAffiliated/party',
             'data': {'query': query}
         }
@@ -61,6 +65,7 @@ class New:
 
     def iplocate(self, query):
         headers = {
+            'headers': {},
             "Authorization": self.token,
             "Accept": "application/json"
         }
